@@ -2,4 +2,4 @@
 
 input=$1
 
-mogrify -trim -gravity center -resize 150x150 -extent 150x150 "${input}"/*.png
+mogrify -trim -gravity center -resize 64x64 -extent 64x64 "${input}"/*.png
