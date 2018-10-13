@@ -30,10 +30,9 @@ classes = ["circle", "hourglass", "square", "star", "triangle"]
 num_classes = 5
 
 if K.image_data_format() == 'channels_first':
-    input_shape = (3, img_width, img_height)
+    input_shape = (1, img_width, img_height)
 else:
-    input_shape = (img_width, img_height, 3)
-
+    input_shape = (img_width, img_height, 1)
 
 model = Sequential()
 model.add(Conv2D(32, (3, 3), input_shape=input_shape))
@@ -75,7 +74,8 @@ train_generator = train_datagen.flow_from_directory(
     target_size=(img_width, img_height),
     batch_size=batch_size,
     class_mode='categorical',
-    classes=classes
+    classes=classes,
+    color_mode='grayscale'
 )
 
 print(train_generator.class_indices)
@@ -85,7 +85,8 @@ validation_generator = test_datagen.flow_from_directory(
     target_size=(img_width, img_height),
     batch_size=batch_size,
     class_mode='categorical',
-    classes=classes
+    classes=classes,
+    color_mode='grayscale'
 )
 
 model.fit_generator(
@@ -95,8 +96,9 @@ model.fit_generator(
     validation_data=validation_generator,
     validation_steps=nb_validation_samples // batch_size)
 
+model.save('./models/model_{}.h5'.format(len(next(os.walk("./models/keras"))[2])))
+
 loss, acc = model.evaluate_generator(validation_generator)
 
 print('\nTesting loss: {}, acc: {}\n'.format(loss, acc))
 
-model.save('./models/model_{}.h5'.format(len(next(os.walk("./models/keras"))[2])))

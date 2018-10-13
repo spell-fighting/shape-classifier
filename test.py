@@ -14,9 +14,9 @@ config.gpu_options.allow_growth = True
 session = tf.Session(config=config)
 set_session(session)
 
-model = load_model("./models/model_{}.h5".format(len(next(os.walk("./models"))[2]) - 1))
+model = load_model("./models/keras/model_{}.h5".format(len(next(os.walk("./models/keras/"))[2]) - 1))
 
-img = load_img("dataset/validation/hourglass/a5yjzlh1qh4hgspcjaj8.png")
+img = load_img("dataset/test/circle_0.png")
 x = img_to_array(img)
 x = x.reshape((1,) + x.shape)
 
@@ -28,6 +28,8 @@ if K.image_data_format() == 'channels_first':
     input_shape = (1, img_width, img_height)
 else:
     input_shape = (img_width, img_height, 1)
+
+model.summary()
 
 prediction = model.predict(x)
 
