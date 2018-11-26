@@ -2,10 +2,9 @@ import tensorflow as tf
 import os
 from keras.preprocessing.image import img_to_array, load_img
 
-img = load_img("dataset/test/square_0.png")
+img = load_img("dataset/test/square_0.png", grayscale=True)
 input = img_to_array(img)
 input = input.reshape((1,) + input.shape)
-
 
 def load_graph(frozen_graph_filename):
     # We load the protobuf file from the disk and parse it to retrieve the
@@ -32,7 +31,7 @@ for op in graph.get_operations():
     print(op.name)
 
 # We access the input and output nodes
-x = graph.get_tensor_by_name('prefix/conv2d_38_input:0')
+x = graph.get_tensor_by_name('prefix/conv2d_1_input:0')
 y = graph.get_tensor_by_name('prefix/output_node0:0')
 
 # We launch a Session

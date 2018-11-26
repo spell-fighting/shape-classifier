@@ -16,11 +16,9 @@ set_session(session)
 
 model = load_model("./models/keras/model_{}.h5".format(len(next(os.walk("./models/keras/"))[2]) - 1))
 
-img = load_img("dataset/test/circle_0.png")
+img = load_img("dataset/test/circle_0.png", grayscale=True)
 x = img_to_array(img)
 x = x.reshape((1,) + x.shape)
-
-print(x)
 
 img_width, img_height = 64, 64
 
