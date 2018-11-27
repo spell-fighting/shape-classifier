@@ -2,6 +2,4 @@
 .idea/
 
 # Project folders
-dataset/test
-dataset/train
-dataset/validation
+data/
