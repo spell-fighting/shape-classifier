@@ -52,8 +52,8 @@ tbCallBack = keras.callbacks.TensorBoard(log_dir='../Graph', histogram_freq=0, w
 training_generator = DataGenerator(IMAGES_PER_CLASS, CLASSES, RATIO, data_path, batch_size=batch_size, dim=(SIZE, SIZE))
 validation_generator = DataGenerator(IMAGES_PER_CLASS, CLASSES, RATIO, data_path, batch_size=batch_size, dim=(SIZE, SIZE), mode="validation")
 
-training_samples = 50000
-validation_samples = training_samples * RATIO
+training_samples = 100000
+validation_samples = training_samples * (1 - RATIO)
 
 model.fit_generator(
     training_generator,
