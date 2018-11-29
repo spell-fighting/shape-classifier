@@ -7,7 +7,7 @@ from keras import backend as K
 from generator import DataGenerator
 from config import SIZE, CLASSES, IMAGES_PER_CLASS, RATIO, data_path
 
-# assert len(K.tensorflow_backend._get_available_gpus()) > 0
+assert len(K.tensorflow_backend._get_available_gpus()) > 0
 
 epochs = 20
 batch_size = 128

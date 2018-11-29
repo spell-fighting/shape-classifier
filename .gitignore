@@ -3,3 +3,5 @@
 
 # Project folders
 data/
+
+__pycache__/
