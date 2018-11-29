@@ -1,48 +1,85 @@
 import numpy as np
-import random
 from keras import backend as K
-
-from config import CLASSES, IMAGES_PER_CLASS, RATIO, SIZE, data_path
-
-
-def generator(batch_size, dataset):
-    batch_feature = np.zeros((batch_size, SIZE, SIZE, 1))
-    batch_labels = np.zeros((batch_size, len(CLASSES)))
-
-    while True:
-        for i in range(batch_size):
-            index = random.randint(0, dataset.len() - 1)
-            feature, label_index = dataset.getitem(index)
-            batch_feature[i] = feature
-            batch_labels[i] = label_index
-        yield batch_feature, batch_labels
+import keras
 
 
-class Dataset:
-    def __init__(self, mode):
-        self.num_classes = len(CLASSES)
+class DataGenerator(keras.utils.Sequence):
+    """Generates data for Keras"""
+
+    def __init__(self,
+                 number_of_samples,
+                 labels,
+                 ratio,
+                 data_path,
+                 batch_size=32,
+                 dim=(28, 28),
+                 n_channels=1,
+                 shuffle=True,
+                 mode="train"):
+        """Initialization"""
+        self.dim = dim
+        self.batch_size = batch_size
+        self.labels = labels
+        self.n_channels = n_channels
+        self.n_classes = len(labels)
+        self.shuffle = shuffle
+        self.data = []
 
         if mode == "train":
             self.offset = 0
-            self.num_images_per_class = int(IMAGES_PER_CLASS * RATIO)
-
+            self.num_images_per_class = int(number_of_samples * ratio)
         else:
-            self.offset = int(IMAGES_PER_CLASS * RATIO)
-            self.num_images_per_class = int(IMAGES_PER_CLASS * (1 - RATIO))
+            self.offset = int(number_of_samples * ratio)
+            self.num_images_per_class = int(number_of_samples * (1 - ratio))
 
-        self.num_samples = self.num_images_per_class * self.num_classes
+        for label in labels:
+            file = "{}/{}.npy".format(data_path, label)
+            self.data.append(np.load(file).astype(np.float32))
 
-    def len(self):
-        return self.num_samples
+        self.on_epoch_end()
 
-    def getitem(self, item):
-        file = "{}/{}.npy".format(data_path, CLASSES[int(item / self.num_images_per_class)])
-        image = np.load(file).astype(np.float32)[self.offset + (item % self.num_images_per_class)]
-        image /= 255
+    def __len__(self):
+        """Denotes the number of batches per epoch"""
+        return int(np.floor(self.num_images_per_class * self.n_classes / self.batch_size))
 
-        if K.image_data_format() == 'channels_first':
-            reshaped_image = image.reshape((1, 28, 28))
-        else:
-            reshaped_image = image.reshape((28, 28, 1))
+    def __getitem__(self, index):
+        """Generate one batch of data"""
+        return self.__data_generation(self.indexes)
 
-        return reshaped_image, int(item / self.num_images_per_class)
+    def on_epoch_end(self):
+        """Updates indexes after each epoch"""
+        self.indexes = np.random.randint(0, self.num_images_per_class, self.batch_size, np.int)
+        if self.shuffle:
+            np.random.shuffle(self.indexes)
+
+    def __data_generation(self, indexes):
+        """Generates data containing batch_size samples"""  # X : (n_samples, *dim, n_channels)
+        # Initialization
+        x = np.empty((self.batch_size, *self.dim, self.n_channels))
+        y = np.empty((self.batch_size), dtype=int)
+
+        partition = int(self.batch_size / self.n_classes)
+        partition_x = 0
+
+        class_x = 0
+
+        # Generate data
+        for i, img_i in enumerate(indexes):
+            image = self.data[class_x][self.offset + (img_i % self.num_images_per_class)] / 255
+            if K.image_data_format() == 'channels_first':
+                image = image.reshape((1, 28, 28))
+            else:
+                image = image.reshape((28, 28, 1))
+
+            x[i,] = image
+            y[i] = class_x
+
+            partition_x += 1
+            if partition_x > partition:
+                if class_x + 1 < self.n_classes:
+                    class_x += 1
+                else:
+                    class_x = 0
+                partition_x = 0
+
+        return x, keras.utils.to_categorical(y, num_classes=self.n_classes)
