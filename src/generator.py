@@ -44,42 +44,35 @@ class DataGenerator(keras.utils.Sequence):
 
     def __getitem__(self, index):
         """Generate one batch of data"""
-        return self.__data_generation(self.indexes)
+        return self.__data_generation()
 
-    def on_epoch_end(self):
-        """Updates indexes after each epoch"""
-        self.indexes = np.random.randint(0, self.num_images_per_class, self.batch_size, np.int)
-        if self.shuffle:
-            np.random.shuffle(self.indexes)
+    def on_batch_end(self):
+        pass
 
-    def __data_generation(self, indexes):
+    def __data_generation(self):
         """Generates data containing batch_size samples"""  # X : (n_samples, *dim, n_channels)
         # Initialization
-        x = np.empty((self.batch_size, *self.dim, self.n_channels))
-        y = np.empty((self.batch_size), dtype=int)
 
         partition = int(self.batch_size / self.n_classes)
-        partition_x = 0
 
-        class_x = 0
+        indexes = np.random.randint(0, self.num_images_per_class, partition, np.int)
 
+        x = np.empty((partition * self.n_classes, *self.dim, self.n_channels))
+        y = np.empty(partition * self.n_classes, dtype=int)
+
+        i = 0
         # Generate data
-        for i, img_i in enumerate(indexes):
-            image = self.data[class_x][self.offset + (img_i % self.num_images_per_class)] / 255
-            if K.image_data_format() == 'channels_first':
-                image = image.reshape((1, 28, 28))
-            else:
-                image = image.reshape((28, 28, 1))
-
-            x[i,] = image
-            y[i] = class_x
-
-            partition_x += 1
-            if partition_x > partition:
-                if class_x + 1 < self.n_classes:
-                    class_x += 1
+        for img_i in indexes:
+            for class_x in range(self.n_classes):
+                image = self.data[class_x][self.offset + (img_i % self.num_images_per_class)] / 255
+                if K.image_data_format() == 'channels_first':
+                    image = image.reshape((1, 28, 28))
                 else:
-                    class_x = 0
-                partition_x = 0
+                    image = image.reshape((28, 28, 1))
+
+                x[i, ] = image
+                y[i] = class_x
+                i += 1
+
 
         return x, keras.utils.to_categorical(y, num_classes=self.n_classes)
