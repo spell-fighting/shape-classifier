@@ -74,5 +74,4 @@ class DataGenerator(keras.utils.Sequence):
                 y[i] = class_x
                 i += 1
 
-
         return x, keras.utils.to_categorical(y, num_classes=self.n_classes)

@@ -18,39 +18,31 @@ else:
     input_shape = (SIZE, SIZE, 1)
 
 model = Sequential()
-model.add(Conv2D(32, (3, 3), input_shape=input_shape))
-model.add(Activation('relu'))
-model.add(Conv2D(32, (3, 3)))
-model.add(Activation('relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Dropout(0.25))
-
-model.add(Conv2D(64, (3, 3), padding='same'))
-model.add(Activation('relu'))
-model.add(Conv2D(64, (3, 3)))
-model.add(Activation('relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Dropout(0.25))
+model.add(Conv2D(32, (5, 5), input_shape=input_shape, activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2), padding='same'))
+model.add(Conv2D(64, (5, 5), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2), padding='same'))
 
 model.add(Flatten())
-model.add(Dense(512))
-model.add(Activation('relu'))
-model.add(Dropout(0.5))
-model.add(Dense(len(CLASSES)))
-model.add(Activation('softmax'))
+model.add(Dense(512, activation='relu'))
+model.add(Dropout(0.6))
+model.add(Dense(128, activation='relu'))
+model.add(Dropout(0.6))
+model.add(Dense(len(CLASSES), activation='softmax'))
 
 model.summary()
 
 model.compile(
     loss='categorical_crossentropy',
-    optimizer='adadelta',
+    optimizer='adam',
     metrics=['accuracy']
 )
 
 tbCallBack = keras.callbacks.TensorBoard(log_dir='../Graph', histogram_freq=0, write_graph=True, write_images=True)
 
 training_generator = DataGenerator(IMAGES_PER_CLASS, CLASSES, RATIO, data_path, batch_size=batch_size, dim=(SIZE, SIZE))
-validation_generator = DataGenerator(IMAGES_PER_CLASS, CLASSES, RATIO, data_path, batch_size=batch_size, dim=(SIZE, SIZE), mode="validation")
+validation_generator = DataGenerator(IMAGES_PER_CLASS, CLASSES, RATIO, data_path, batch_size=batch_size,
+                                     dim=(SIZE, SIZE), mode="validation")
 
 model.fit_generator(
     training_generator,
